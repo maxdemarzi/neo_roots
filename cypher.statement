@@ -1,0 +1,1 @@
+{ "statements" : [ { "statement" : "MATCH pt=(p:Person { name: \"Jennifer20\" })-[r:HAS_CHILD*]->(c) WITH extract(x IN nodes(pt) | x.name) as paths, length(pt) as lengths RETURN paths, lengths" } ]}
