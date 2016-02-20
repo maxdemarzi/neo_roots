@@ -90,22 +90,24 @@ To test times:
 
 Run this command:
 
+        curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
+        curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
 To skip displaying the output use:
 
+        curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
+        curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
 On Windows operating systems:
 
+        curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
-
-Compare to:
-
-        curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths/1-Max
+        curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
 neo4j:swordfish above are the username:password basic auth credentials
 
@@ -134,6 +136,8 @@ The file cypher.statement contains:
 
 15. To return only the longest paths:
 
+        curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/longest_paths_streaming_recursively/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/longest_paths_streaming_recursively/1-Max
-
+        curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/longest_paths_streaming_recursively/1-Max
+        ab -A neo4j:swordfish -n 10 -c 2 http://127.0.0.1:7474/v1/service/longest_paths_streaming_recursively/1-Max
 
