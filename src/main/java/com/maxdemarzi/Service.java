@@ -284,7 +284,8 @@ public class Service {
             jg.writeStartObject();
             jg.writeArrayFieldStart("paths");
             for (Long nodeId : nodeIds) {
-                jg.writeString((String) names.get(nodeId));
+                //jg.writeString((String) names.get(nodeId)); // Use this line if sticking with Guava
+                jg.writeString((String) namesArray[((Number)nodeId).intValue()]);
             }
             jg.writeEndArray();
             jg.writeNumberField("length", depth);
@@ -300,6 +301,19 @@ public class Service {
     public Response pathsStreamingRecursively(
             @PathParam("name") final String name,
             @Context final GraphDatabaseService db) throws IOException {
+        // Remove this if statement if sticking with Guava
+        if (namesArray == null) {
+            NeoStores neoStore = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(NeoStores.class);
+            int highId = ((Number)neoStore.getNodeStore().getHighId()).intValue();
+
+            namesArray = new String[highId];
+            try (Transaction tx = db.beginTx()) {
+                for (Node n : GlobalGraphOperations.at(db).getAllNodes()) {
+                    namesArray[((Number)n.getId()).intValue()] = (String)n.getProperty("name", "");
+                }
+            }
+
+        }
 
         StreamingOutput stream = new StreamingOutput() {
             @Override
