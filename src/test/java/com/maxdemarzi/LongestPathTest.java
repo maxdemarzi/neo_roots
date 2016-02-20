@@ -19,8 +19,6 @@ public class LongestPathTest {
     @Test
     public void shouldRespondToLongestRecursivelyCachedStreamingPaths() {
         HTTP.Response response = HTTP.GET(neo4j.httpURI().resolve("/v1/service/longest_paths_streaming_recursively/user1").toString());
-        System.out.println(response);
-        System.out.println(expected);
         ArrayList actual = response.content();
         assertTrue(actual.equals(expected));
     }

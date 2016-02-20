@@ -10,6 +10,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Uniqueness;
+import org.neo4j.kernel.GraphDatabaseAPI;
+import org.neo4j.kernel.impl.store.NeoStores;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import javax.ws.rs.GET;
@@ -37,6 +39,7 @@ public class Service {
     }
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static String[] namesArray;
 
     private static final LoadingCache<Long, String> names = CacheBuilder.newBuilder()
             .maximumSize(2_000_000)
@@ -205,6 +208,62 @@ public class Service {
                     tx.success();
                 } catch (ExecutionException e) {
                     e.printStackTrace();
+                }
+                jg.flush();
+                jg.close();
+            }
+        };
+        return Response.ok().entity(stream).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @javax.ws.rs.Path("/paths_streaming_pre_cached/{name}/")
+    @Produces({"application/json"})
+    public Response pathsStreamingPreCached(
+            @PathParam("name") final String name,
+            @Context final GraphDatabaseService db) throws IOException {
+        if (namesArray == null) {
+            NeoStores neoStore = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(NeoStores.class);
+            int highId = ((Number)neoStore.getNodeStore().getHighId()).intValue();
+
+            namesArray = new String[highId];
+            try (Transaction tx = db.beginTx()) {
+                for (Node n : GlobalGraphOperations.at(db).getAllNodes()) {
+                    namesArray[((Number)n.getId()).intValue()] = (String)n.getProperty("name", "");
+                }
+            }
+
+        }
+
+        StreamingOutput stream = new StreamingOutput() {
+            @Override
+            public void write(OutputStream os) throws IOException, WebApplicationException {
+                JsonGenerator jg = objectMapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+
+                try (Transaction tx = db.beginTx()) {
+                    final Node user = db.findNode(Labels.Person, "name", name);
+
+                    if (user != null) {
+
+                        TraversalDescription td = db.traversalDescription()
+                                .depthFirst()
+                                .expand(PathExpanders.forTypeAndDirection(RelationshipTypes.HAS_CHILD, Direction.OUTGOING))
+                                .uniqueness(Uniqueness.RELATIONSHIP_PATH);
+                        jg.writeStartArray();
+                        for (org.neo4j.graphdb.Path position : td.traverse(user)) {
+                            jg.writeStartObject();
+                            jg.writeArrayFieldStart("paths");
+                            for (Node node : position.nodes()) {
+                                jg.writeString((String) namesArray[((Number)node.getId()).intValue()]);
+                            }
+                            jg.writeEndArray();
+                            jg.writeNumberField("length", position.length());
+                            jg.writeEndObject();
+                        }
+                        jg.writeEndArray();
+                    }
+
+                    tx.success();
                 }
                 jg.flush();
                 jg.close();

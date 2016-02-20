@@ -37,6 +37,13 @@ public class ServiceTest {
         assertTrue(actual.equals(expected));
     }
 
+    @Test
+    public void shouldRespondToPreCachedStreamingPaths() {
+        HTTP.Response response = HTTP.GET(neo4j.httpURI().resolve("/v1/service/paths_streaming_pre_cached/user1").toString());
+        ArrayList actual = response.content();
+        assertTrue(actual.equals(expected));
+    }
+
     private static final ArrayList<HashMap<String,Object>> expected = new ArrayList<HashMap<String, Object>>() {{
         add(new HashMap<String,Object>(){{
             put("paths", new ArrayList<String>(){{
