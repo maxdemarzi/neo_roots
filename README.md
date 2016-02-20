@@ -35,22 +35,22 @@ Original Cypher Query:
 
 8. Create test data:
 
-Generate Dummy Nodes:
+    Generate Dummy Nodes:
 
         CREATE (u:Person {name:"1-Max"})
 
-Add an Index:
+    Add an Index:
 
         CREATE INDEX ON :Person(name);
 
-Create the family tree:
+    Create the family tree:
 
         WITH ["Jennifer","Michelle","Tanya","Julie","Christie","Sophie","Amanda","Khloe","Sarah","Kaylee"] AS names
         MATCH (users:Person) WHERE users.name STARTS WITH "1-"
         WITH range(1,2) as children, users, names
         FOREACH (id in children | CREATE (users)-[:HAS_CHILD]->(:Person {name:2- + names[id% size(names)]+id}) );
 
-Change the "1-" and "2-" until we get to level 20:
+    Change the "1-" and "2-" until we get to level 20:
 
         WITH ["Jennifer","Michelle","Tanya","Julie","Christie","Sophie","Amanda","Khloe","Sarah","Kaylee"] AS names
         MATCH (users:Person) WHERE users.name STARTS WITH "19-"
@@ -66,7 +66,7 @@ Change the "1-" and "2-" until we get to level 20:
 
         :GET /v1/service/paths_streaming/1-Max
 
-We can also use curl:
+    We can also use curl:
 
         curl -u neo4j:swordfish http://localhost:7474/v1/service/paths_streaming/1-Max
 
@@ -75,7 +75,7 @@ We can also use curl:
         :GET /v1/service/paths_streaming_cached/1-Max
         curl -u neo4j:swordfish http://localhost:7474/v1/service/paths_streaming_cached/1-Max
 
-To test times:
+    To test times:
 
 12. Create a curl-format.txt file and paste in:
 
@@ -88,28 +88,28 @@ To test times:
                            ----------\n
                 time_total:  %{time_total}\n
 
-Run this command:
+    Run this command:
 
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
-To skip displaying the output use:
+    To skip displaying the output use:
 
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
-On Windows operating systems:
+    On Windows operating systems:
 
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming_cached/1-Max
         curl -u neo4j:swordfish -w "@curl-format.txt" -o NUL -s http://localhost:7474/v1/service/paths_streaming_pre_cached/1-Max
 
-neo4j:swordfish above are the username:password basic auth credentials
+    neo4j:swordfish above are the username:password basic auth credentials
 
 
 13. Compare to Original Query:
@@ -118,7 +118,7 @@ neo4j:swordfish above are the username:password basic auth credentials
         WITH extract(x IN nodes(pt) | x.name) as paths, length(pt) as length
         RETURN paths, length
 
-With curl:
+    With curl:
 
         curl -u neo4j:swordfish -w "@curl-format.txt" -o /dev/null -s -H "Content-Type: application/json" -X POST -d '{ "statements" : [ { "statement" : "MATCH pt=(p:Person { name: \"1-Max\" })-[r:HAS_CHILD*]->(c) WITH extract(x IN nodes(pt) | x.name) as paths, length(pt) as lengths RETURN paths, lengths" } ]}' http://localhost:7474/db/data/transaction/commit
 
@@ -130,7 +130,7 @@ With curl:
         ab -A neo4j:swordfish -n 10 -c 2 http://127.0.0.1:7474/v1/service/paths_streaming_pre_cached/1-Max
         ab -A neo4j:swordfish -n 10 -c 2 -p cypher.statement -T 'application/json' http://127.0.0.1:7474/db/data/transaction/commit
 
-The file cypher.statement contains:
+    The file cypher.statement contains:
 
         { "statements" : [ { "statement" : "MATCH pt=(p:Person { name: \"1-Max\" })-[r:HAS_CHILD*]->(c) WITH extract(x IN nodes(pt) | x.name) as paths, length(pt) as lengths RETURN paths, lengths " } ]}
 
